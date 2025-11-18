@@ -110,9 +110,31 @@ You can pass the same flags as to the Python module, e.g.:
 scripts/analyze_latest.sh --output-dir data/analysis
 ```
 
+### macOS trackpad app starter script
+
+For the macOS trackpad logging app that lives in this repo under `savantlab-trackpad-macOS/`, there is a helper script that builds and launches it via Xcode:
+
+```bash
+scripts/run_trackpad_app.sh
+```
+
+This script expects:
+
+- Xcode to be installed (not just Command Line Tools).
+- `xcodebuild` to be pointing at Xcode, e.g.:
+
+  ```bash
+  sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+  ```
+
+Running the script will:
+
+- Build the `savantlab` macOS app into `build/` at the repo root.
+- Open the resulting `savantlab.app` so you can start a trackpad logging session.
+
 ## Typical end-to-end workflow
 
-1. **Start the Swift finger-contact logger app**.
+1. **Start the Swift finger-contact logger app** (or the macOS trackpad app via `scripts/run_trackpad_app.sh`).
 2. **Use the browser canvas app** to draw:
    - When finished, export `canvas_log.json` and the canvas image (e.g. `canvas_01.png`) into `data/`.
 3. **Quit the Swift app** so it writes `touch_lifetimes_*.csv` and `finger_counts_*.csv` into `data/`.
