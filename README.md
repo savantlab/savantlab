@@ -2,8 +2,6 @@
 
 A macOS app for recording and analyzing trackpad drawing behavior using the Harmony shaded brush algorithm.
 
-*Formerly: Mouse Trackpad Science Lab*
-
 ## Overview
 
 This project provides a native macOS application that combines:
