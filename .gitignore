@@ -9,8 +9,10 @@ venv/
 .venv/
 *.egg-info/
 
-# Analysis outputs
+# Analysis outputs (but not documentation images)
 analysis/output/
 *.png
 *.jpg
 *.jpeg
+!docs/images/*.png
+!docs/images/*.jpg

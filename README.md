@@ -49,6 +49,9 @@ Each recording session automatically saves two files to `~/Documents/savantlab-t
 
 - **`session-YYYYMMDD-HHMMSS.png`** - Screenshot of your drawing
 
+![Drawing Example](docs/images/app_drawing_example.png)
+*Example saved drawing with Harmony shaded brush effect*
+
 ## App Features
 
 ### Harmony Shaded Brush
@@ -77,6 +80,18 @@ Captures comprehensive trackpad data:
 - All with precise timestamps
 
 ## Data Analysis
+
+The analysis pipeline provides comprehensive insights into drawing behavior:
+
+### Example Visualizations
+
+| Trajectory Analysis | Position Heatmap |
+|:-------------------:|:----------------:|
+| ![Trajectory](docs/images/analysis_trajectory.png) | ![Heatmap](docs/images/analysis_heatmap.png) |
+| Drawing path colored by speed | Areas of concentrated activity |
+
+![Speed Time Series](docs/images/analysis_speed.png)
+*Drawing speed over time - shows velocity patterns and rhythm*
 
 ### CSV Format
 
