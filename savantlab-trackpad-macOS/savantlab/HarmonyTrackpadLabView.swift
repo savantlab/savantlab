@@ -13,6 +13,7 @@ import AppKit
 
 struct HarmonyTrackpadLabView: View {
     @StateObject private var logger = TrackpadEventLogger()
+    @StateObject private var screenRecorder = ScreenRecorder()
     @State private var clearCanvasTrigger = 0
     @State private var canvasView: DrawingCanvasView?
 
@@ -45,6 +46,7 @@ struct HarmonyTrackpadLabView: View {
                 if logger.isPaused {
                     Button(action: {
                         logger.startSession()
+                        startScreenRecording()
                     }) {
                         HStack {
                             Image(systemName: "play.circle.fill")
@@ -59,6 +61,7 @@ struct HarmonyTrackpadLabView: View {
                 } else {
                     Button(action: {
                         logger.stopSession()
+                        screenRecorder.stopRecording()
                     }) {
                         HStack {
                             Image(systemName: "stop.circle.fill")
@@ -73,6 +76,7 @@ struct HarmonyTrackpadLabView: View {
                     
                     Button(action: {
                         logger.saveSession()
+                        screenRecorder.stopRecording()
                     }) {
                         HStack {
                             Image(systemName: "square.and.arrow.down")
@@ -154,6 +158,12 @@ struct HarmonyTrackpadLabView: View {
         let seconds = Int(duration) % 60
         let milliseconds = Int((duration.truncatingRemainder(dividingBy: 1)) * 10)
         return String(format: "%02d:%02d.%d", minutes, seconds, milliseconds)
+    }
+    
+    private func startScreenRecording() {
+        guard let sessionURL = logger.sessionFileURL else { return }
+        let videoURL = sessionURL.deletingPathExtension().appendingPathExtension("mov")
+        screenRecorder.startRecording(outputURL: videoURL)
     }
 }
 

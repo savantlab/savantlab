@@ -7,7 +7,8 @@ A macOS app for recording and analyzing trackpad drawing behavior using the Harm
 This project provides a native macOS application that combines:
 - **Drawing canvas** with Harmony's shaded brush effect
 - **Trackpad event logging** capturing all movements, gestures, and timestamps
-- **Session recording** with automatic CSV + PNG export
+- **Screen recording** automatically captures your entire desktop during sessions
+- **Session recording** with automatic CSV + PNG + MOV export
 - **Real-time timer** for tracking drawing session duration
 
 ## Quick Start
@@ -37,7 +38,7 @@ This project provides a native macOS application that combines:
 
 ### Output Files
 
-Each recording session automatically saves two files to `~/Documents/savantlab-trackpad-sessions/`:
+Each recording session automatically saves three files to `~/Documents/savantlab-trackpad-sessions/`:
 
 - **`session-YYYYMMDD-HHMMSS.csv`** - Trackpad event log with:
   - Timestamp (ISO 8601 with fractional seconds)
@@ -48,6 +49,10 @@ Each recording session automatically saves two files to `~/Documents/savantlab-t
   - Phase information
 
 - **`session-YYYYMMDD-HHMMSS.png`** - Screenshot of your drawing
+
+- **`session-YYYYMMDD-HHMMSS.mov`** - Full desktop screen recording of your session
+
+> **Note:** Screen recording requires permission on first use. macOS will prompt you to allow screen recording in System Settings > Privacy & Security > Screen Recording.
 
 ![Drawing Example](docs/images/app_drawing_example.png)
 *Example saved drawing with Harmony shaded brush effect*
@@ -143,6 +148,7 @@ harmony-sessions/
 │   │   ├── HarmonyTrackpadLabView.swift  # Main UI
 │   │   ├── NativeDrawingView.swift       # Canvas with Harmony brush
 │   │   ├── TrackpadEventLogger.swift     # Event recording logic
+│   │   ├── ScreenRecorder.swift          # Desktop screen recording
 │   │   └── harmony-master/        # Harmony brush JS (reference)
 │   └── savantlab-trackpad-macOS.xcodeproj/
 ├── scripts/
