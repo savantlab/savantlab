@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.savantlab.trackpad-analysis</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/savantlab/mouse-trackpad-science-lab/analysis/run_analysis.sh</string>
+        <string>batch</string>
+    </array>
+    
+    <key>WorkingDirectory</key>
+    <string>/Users/savantlab/mouse-trackpad-science-lab/analysis</string>
+    
+    <key>StandardOutPath</key>
+    <string>/Users/savantlab/mouse-trackpad-science-lab/analysis/logs/launchd-out.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/Users/savantlab/mouse-trackpad-science-lab/analysis/logs/launchd-err.log</string>
+    
+    <!-- Run every day at 6 AM -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>6</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    
+    <!-- Alternatively, run every hour (comment out StartCalendarInterval above and uncomment below)
+    <key>StartInterval</key>
+    <integer>3600</integer>
+    -->
+    
+    <key>RunAtLoad</key>
+    <false/>
+    
+    <key>KeepAlive</key>
+    <false/>
+</dict>
+</plist>

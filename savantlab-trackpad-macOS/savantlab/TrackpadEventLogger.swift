@@ -13,14 +13,14 @@ import Combine
 import AppKit
 
 final class TrackpadEventLogger: ObservableObject {
-    @Published var isRecording: Bool = false
     @Published var eventCount: Int = 0
-    @Published var lastEventDescription: String = "No events yet"
+    @Published var lastEventDescription: String = "Waiting to start..."
     @Published var sessionFileURL: URL?
-    @Published var recordingDuration: TimeInterval = 0
+    @Published var sessionDuration: TimeInterval = 0
+    @Published var isPaused: Bool = true
 
     private var fileHandle: FileHandle?
-    private var recordingStartTime: Date?
+    private var sessionStartTime: Date?
     private var timerTask: Task<Void, Never>?
     var saveCanvasImage: ((URL) -> Bool)?
 
@@ -30,30 +30,31 @@ final class TrackpadEventLogger: ObservableObject {
         f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return f
     }()
+    
+    init() {
+        // Don't start automatically - wait for user to press start
+    }
 
-    func startRecording() {
-        print("[Logger] startRecording called")
-        guard !isRecording else {
-            print("[Logger] Already recording, ignoring")
-            return
-        }
+    func startSession() {
+        print("[Logger] ===== Starting new session =====")
 
         do {
+            print("[Logger] Creating session file URL...")
             let fileURL = try makeNewSessionFileURL()
+            print("[Logger] Session URL created: \(fileURL.path)")
             sessionFileURL = fileURL
+            print("[Logger] Checking/creating directory...")
 
             if !FileManager.default.fileExists(atPath: fileURL.deletingLastPathComponent().path) {
                 try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+                print("[Logger] Directory created")
+            } else {
+                print("[Logger] Directory exists")
             }
 
-            if !FileManager.default.fileExists(atPath: fileURL.path) {
-                FileManager.default.createFile(atPath: fileURL.path, contents: nil)
-            }
-
-            fileHandle = try FileHandle(forWritingTo: fileURL)
-            try fileHandle?.seekToEnd()
-
-            // Unified header for both pointer/gesture events and per-finger touches.
+            print("[Logger] Creating file with header...")
+            
+            // Write header directly to create persistent file
             let header = [
                 "timestamp_local",
                 "event_type",
@@ -70,58 +71,116 @@ final class TrackpadEventLogger: ObservableObject {
                 "touch_normalizedY",
                 "touch_isResting"
             ].joined(separator: ",") + "\n"
-
-            if let data = header.data(using: .utf8) {
-                fileHandle?.write(data)
+            
+            // Use Data.write to create persistent file
+            if let headerData = header.data(using: .utf8) {
+                try headerData.write(to: fileURL, options: [.atomic])
+                print("[Logger] File created with header: \(fileURL.path)")
             }
+            
+            // Verify file exists
+            guard FileManager.default.fileExists(atPath: fileURL.path) else {
+                throw NSError(domain: "TrackpadLogger", code: 1, userInfo: [NSLocalizedDescriptionKey: "File creation failed"])
+            }
+            
+            // Open file handle and KEEP IT OPEN for writing
+            fileHandle = try FileHandle(forWritingTo: fileURL)
+            try fileHandle?.seekToEnd()
+            print("[Logger] File handle opened for writing")
 
             eventCount = 0
-            lastEventDescription = "Recording started"
-            recordingStartTime = Date()
-            recordingDuration = 0
-            isRecording = true
-            print("[Logger] Recording started successfully. Session file: \(fileURL.path)")
+            lastEventDescription = "Session started"
+            sessionStartTime = Date()
+            sessionDuration = 0
+            isPaused = false
+            print("[Logger] Session started successfully. File: \(fileURL.path)")
             
-            // Start simple timer task
+            // Start timer task
             timerTask = Task { @MainActor [weak self] in
-                while let self = self, self.isRecording, let startTime = self.recordingStartTime {
-                    self.recordingDuration = Date().timeIntervalSince(startTime)
+                while let self = self, let startTime = self.sessionStartTime {
+                    self.sessionDuration = Date().timeIntervalSince(startTime)
                     try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
                 }
             }
         } catch {
-            lastEventDescription = "Failed to start recording: \(error.localizedDescription)"
-            isRecording = false
+            lastEventDescription = "Failed to start session: \(error.localizedDescription)"
+            print("[Logger] ERROR: \(error)")
             fileHandle = nil
         }
     }
 
-    func stopRecording() {
-        isRecording = false
+    func stopSession() {
+        print("[Logger] ===== Stopping session (no save) =====")
+        
+        // Cancel timer task
         timerTask?.cancel()
         timerTask = nil
-        recordingStartTime = nil
-        recordingDuration = 0  // Reset timer to 00:00.0
+        sessionStartTime = nil
+        isPaused = true
+        
+        // Close current file
         try? fileHandle?.close()
         fileHandle = nil
         
-        // Save canvas image
-        if let sessionURL = sessionFileURL {
-            let imageURL = sessionURL.deletingPathExtension().appendingPathExtension("png")
-            if let saveImage = saveCanvasImage, saveImage(imageURL) {
-                print("[Logger] Canvas image saved to: \(imageURL.path)")
-            }
-            
-            // Copy both CSV and PNG to user's Documents folder
-            copyToUserDocuments(csvURL: sessionURL, imageURL: imageURL)
+        lastEventDescription = "Session stopped. Ready to start new session."
+    }
+    
+    func saveSession() {
+        print("[Logger] ===== Saving and stopping session =====")
+        
+        guard let sessionURL = sessionFileURL else {
+            print("[Logger] ERROR: No session URL to save")
+            return
         }
         
-        lastEventDescription = "Recording stopped"
+        // Cancel timer task
+        timerTask?.cancel()
+        timerTask = nil
+        sessionStartTime = nil
+        isPaused = true
+        
+        // Close current file and verify it exists
+        if let fh = fileHandle {
+            print("[Logger] Synchronizing file...")
+            try? fh.synchronize()  // Force write to disk
+            print("[Logger] Closing file...")
+            try? fh.close()
+            fileHandle = nil
+            
+            // Verify file exists after close
+            let fm = FileManager.default
+            if fm.fileExists(atPath: sessionURL.path) {
+                let attrs = try? fm.attributesOfItem(atPath: sessionURL.path)
+                let size = attrs?[.size] as? UInt64 ?? 0
+                print("[Logger] ✓ File persisted: \(sessionURL.path) (\(size) bytes)")
+            } else {
+                print("[Logger] ⚠️ WARNING: File disappeared after close: \(sessionURL.path)")
+            }
+        } else {
+            fileHandle = nil
+        }
+        
+        // Save canvas image
+        let imageURL = sessionURL.deletingPathExtension().appendingPathExtension("png")
+        if let saveImage = saveCanvasImage, saveImage(imageURL) {
+            print("[Logger] Canvas image saved to: \(imageURL.path)")
+        }
+        
+        // DISABLED: Don't copy files - keep them only in container
+        // DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        //     self?.copyToUserDocuments(csvURL: sessionURL, imageURL: imageURL)
+        // }
+        
+        // DON'T clear sessionFileURL - keep it for reference
+        lastEventDescription = "Session saved. Ready to start new session."
     }
 
     /// Handle generic pointer / scroll / gesture events.
     func handle(event: NSEvent) {
-        guard isRecording else { return }
+        guard !isPaused, sessionFileURL != nil else {
+            print("[Logger] handle() blocked - isPaused: \(isPaused), hasURL: \(sessionFileURL != nil)")
+            return
+        }
 
         let now = Date()
         let ts = Self.timestampFormatter.string(from: now)
@@ -138,13 +197,16 @@ final class TrackpadEventLogger: ObservableObject {
         case .swipe: typeDescription = "swipe"
         default: typeDescription = "other(\(event.type.rawValue))"
         }
-
+        
         let location = event.locationInWindow
         let deltaX = event.deltaX
         let deltaY = event.deltaY
-        let phase = event.phase.rawValue
-        let scrollDeltaX = event.scrollingDeltaX
-        let scrollDeltaY = event.scrollingDeltaY
+        
+        // Mouse drag events don't have phase or scrolling deltas
+        // Only scroll/gesture events have these properties
+        let phase: UInt64 = 0
+        let scrollDeltaX: CGFloat = 0.0
+        let scrollDeltaY: CGFloat = 0.0
 
         let fields: [String] = [
             ts,
@@ -165,8 +227,21 @@ final class TrackpadEventLogger: ObservableObject {
 
         let line = fields.joined(separator: ",") + "\n"
 
-        if let data = line.data(using: .utf8) {
-            fileHandle?.write(data)
+        if let data = line.data(using: .utf8), let url = sessionFileURL {
+            // Append to file using FileHandle
+            do {
+                // Reopen handle if it was closed
+                if fileHandle == nil {
+                    fileHandle = try FileHandle(forWritingTo: url)
+                }
+                try fileHandle?.seekToEnd()
+                fileHandle?.write(data)
+                try fileHandle?.synchronize()
+            } catch {
+                print("[Logger] ERROR writing event: \(error)")
+                // Try to reopen handle
+                fileHandle = try? FileHandle(forWritingTo: url)
+            }
         }
 
         DispatchQueue.main.async { [weak self] in
@@ -178,7 +253,7 @@ final class TrackpadEventLogger: ObservableObject {
 
     /// Handle per-finger NSTouch events from HarmonyTouchHostingView.
     func handleTouches(event: NSEvent) {
-        guard isRecording else { return }
+        guard !isPaused, sessionFileURL != nil else { return }
 
         let now = Date()
         let ts = Self.timestampFormatter.string(from: now)

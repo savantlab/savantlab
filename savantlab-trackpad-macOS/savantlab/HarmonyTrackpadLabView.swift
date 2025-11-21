@@ -27,9 +27,10 @@ struct HarmonyTrackpadLabView: View {
                     .font(.headline)
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("1. Click the Start Recording button below")
+                    Text("1. Press 'Start Session' to begin logging")
                     Text("2. Draw in the canvas using your trackpad")
-                    Text("3. All trackpad events will be logged with timestamps")
+                    Text("3. Press 'Stop' to pause without saving, or 'Save' (⌘S) to save")
+                    Text("4. Press 'Start Session' again to begin a new session")
                 }
                 .font(.body)
                 .foregroundStyle(.secondary)
@@ -41,24 +42,50 @@ struct HarmonyTrackpadLabView: View {
             
             // Timer and controls
             HStack(spacing: 16) {
-                Button(action: {
-                    if logger.isRecording {
-                        logger.stopRecording()
-                    } else {
-                        logger.startRecording()
+                if logger.isPaused {
+                    Button(action: {
+                        logger.startSession()
+                    }) {
+                        HStack {
+                            Image(systemName: "play.circle.fill")
+                            Text("Start Session")
+                        }
+                        .font(.title3)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
                     }
-                }) {
-                    HStack {
-                        Image(systemName: logger.isRecording ? "stop.circle.fill" : "record.circle")
-                        Text(logger.isRecording ? "Stop Recording" : "Start Recording")
+                    .buttonStyle(.borderedProminent)
+                    .tint(.green)
+                } else {
+                    Button(action: {
+                        logger.stopSession()
+                    }) {
+                        HStack {
+                            Image(systemName: "stop.circle.fill")
+                            Text("Stop")
+                        }
+                        .font(.title3)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
                     }
-                    .font(.title3)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.orange)
+                    
+                    Button(action: {
+                        logger.saveSession()
+                    }) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.down")
+                            Text("Save")
+                        }
+                        .font(.title3)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(.blue)
+                    .keyboardShortcut("s", modifiers: .command)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(logger.isRecording ? .red : .blue)
-                .keyboardShortcut(.space, modifiers: [])
                 
                 Button(action: {
                     clearCanvasTrigger += 1
@@ -72,21 +99,20 @@ struct HarmonyTrackpadLabView: View {
                     .padding(.vertical, 10)
                 }
                 .buttonStyle(.bordered)
-                .disabled(logger.isRecording)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text("Timer:")
+                        Text("Session:")
                             .font(.headline)
                             .foregroundStyle(.primary)
-                        Text(formatDuration(logger.recordingDuration))
+                        Text(formatDuration(logger.sessionDuration))
                             .font(.title2.monospacedDigit().bold())
-                            .foregroundStyle(logger.isRecording ? .red : .primary)
+                            .foregroundColor(logger.isPaused ? .secondary : .green)
                     }
                     
-                    Text(logger.isRecording ? "● Recording" : "Ready to record")
+                    Text(logger.isPaused ? "Ready" : "● Logging")
                         .font(.caption)
-                        .foregroundStyle(logger.isRecording ? .red : .primary)
+                        .foregroundColor(logger.isPaused ? .secondary : .green)
                 }
                 
                 Spacer()

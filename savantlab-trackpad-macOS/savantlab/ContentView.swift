@@ -17,17 +17,23 @@ struct ContentView: View {
         #if os(macOS)
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 12) {
-                Button(logger.isRecording ? "Stop recording" : "Start recording") {
-                    if logger.isRecording {
-                        logger.stopRecording()
-                    } else {
-                        logger.startRecording()
+                if logger.isPaused {
+                    Button("Start Session") {
+                        logger.startSession()
                     }
+                } else {
+                    Button("Stop") {
+                        logger.stopSession()
+                    }
+                    
+                    Button("Save") {
+                        logger.saveSession()
+                    }
+                    .keyboardShortcut("s", modifiers: .command)
                 }
-                .keyboardShortcut(.space, modifiers: [])
 
-                Text(logger.isRecording ? "● Recording" : "Idle")
-                    .foregroundStyle(logger.isRecording ? .red : .secondary)
+                Text(logger.isPaused ? "Ready" : "● Logging")
+                    .foregroundStyle(logger.isPaused ? .secondary : Color.green)
             }
 
             Text("Events recorded: \(logger.eventCount)")

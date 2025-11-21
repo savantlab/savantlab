@@ -112,6 +112,7 @@ final class DrawingCanvasView: NSView {
         strokePoints = [point]
         lastPoint = point
         
+        print("[Canvas] mouseDown - type: \(event.type.rawValue)")
         logger?.handle(event: event)
     }
     
@@ -124,6 +125,7 @@ final class DrawingCanvasView: NSView {
         lastPoint = point
         needsDisplay = true
         
+        print("[Canvas] mouseDragged - type: \(event.type.rawValue)")
         logger?.handle(event: event)
     }
     
@@ -136,6 +138,7 @@ final class DrawingCanvasView: NSView {
         lastPoint = nil
         needsDisplay = true
         
+        print("[Canvas] mouseUp - type: \(event.type.rawValue)")
         logger?.handle(event: event)
     }
     
