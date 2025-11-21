@@ -1,6 +1,6 @@
-# Trackpad Data Analysis Pipeline
+# Harmony Sessions Data Analysis Pipeline
 
-Comprehensive Python tools for analyzing trackpad session data collected from the savantlab macOS app.
+Comprehensive Python tools for analyzing trackpad session data collected from the Harmony Sessions Tracking and Data App (macOS).
 
 ## Features
 

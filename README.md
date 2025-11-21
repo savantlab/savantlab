@@ -1,6 +1,8 @@
-# Mouse Trackpad Science Lab
+# Harmony Sessions Tracking and Data App
 
 A macOS app for recording and analyzing trackpad drawing behavior using the Harmony shaded brush algorithm.
+
+*Formerly: Mouse Trackpad Science Lab*
 
 ## Overview
 
@@ -121,7 +123,7 @@ print(df['event_type'].value_counts())
 ## Project Structure
 
 ```
-mouse-trackpad-science-lab/
+harmony-sessions/
 ├── savantlab-trackpad-macOS/     # Swift/SwiftUI macOS app
 │   ├── savantlab/                 # App source code
 │   │   ├── savantlabApp.swift     # Main app entry point

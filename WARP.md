@@ -2,15 +2,20 @@
 
 This file provides guidance to WARP (warp.dev) when working with code in this repository.
 
+## Project Name
+
+**Harmony Sessions Tracking and Data App** (formerly Mouse Trackpad Science Lab)
+
 ## Repository snapshot
 
 - Top-level layout:
   - `README.md` – project goals and high-level plan.
-  - `src/` – Python package root (currently only `__init__.py`).
-- The project is in a very early stage. No package metadata (`pyproject.toml`, `setup.cfg`), tests, or tooling configuration exist yet.
+  - `savantlab-trackpad-macOS/` – Native macOS Swift app with Harmony brush
+  - `analysis/` – Python analysis pipeline for processing session data
+- The project is now a complete end-to-end system with working app and analysis tools.
 
-Key points from `README.md`:
-- Purpose: "science lab" for recording and analyzing mouse trackpad data.
+Key points:
+- Purpose: Record and analyze trackpad drawing behavior with Harmony shaded brush.
 - Goals:
   - Capture raw trackpad events (position, velocity, gestures, timestamps).
   - Store experiment sessions for later analysis.
