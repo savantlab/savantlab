@@ -1,2 +1,16 @@
 build/
 .DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+*.egg-info/
+
+# Analysis outputs
+analysis/output/
+*.png
+*.jpg
+*.jpeg
