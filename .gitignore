@@ -14,5 +14,12 @@ analysis/output/
 *.png
 *.jpg
 *.jpeg
+*.mov
+*.mp4
+*.csv
 !docs/images/*.png
 !docs/images/*.jpg
+
+# Session recordings (stored in app container)
+*.mov
+*.mp4
