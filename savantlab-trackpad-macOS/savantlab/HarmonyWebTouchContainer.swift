@@ -38,7 +38,6 @@ final class CanvasTouchHostingView: NSView, WKNavigationDelegate, WKScriptMessag
     override init(frame frameRect: NSRect) {
         // Configure WKWebView
         let config = WKWebViewConfiguration()
-        config.preferences.javaScriptEnabled = true
         config.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
         config.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
         

@@ -14,6 +14,7 @@ import AppKit
 struct HarmonyTrackpadLabView: View {
     @StateObject private var logger = TrackpadEventLogger()
     @StateObject private var screenRecorder = ScreenRecorder()
+    @StateObject private var cameraRecorder = CameraRecorder()
     @State private var clearCanvasTrigger = 0
     @State private var canvasView: DrawingCanvasView?
 
@@ -47,6 +48,7 @@ struct HarmonyTrackpadLabView: View {
                     Button(action: {
                         logger.startSession()
                         startScreenRecording()
+                        startCameraRecording()
                     }) {
                         HStack {
                             Image(systemName: "play.circle.fill")
@@ -62,6 +64,7 @@ struct HarmonyTrackpadLabView: View {
                     Button(action: {
                         logger.stopSession()
                         screenRecorder.stopRecording()
+                        cameraRecorder.stopRecording()
                     }) {
                         HStack {
                             Image(systemName: "stop.circle.fill")
@@ -77,6 +80,7 @@ struct HarmonyTrackpadLabView: View {
                     Button(action: {
                         logger.saveSession()
                         screenRecorder.stopRecording()
+                        cameraRecorder.stopRecording()
                     }) {
                         HStack {
                             Image(systemName: "square.and.arrow.down")
@@ -145,10 +149,10 @@ struct HarmonyTrackpadLabView: View {
         }
         .padding()
         .frame(minWidth: 900, minHeight: 700)
-        .onChange(of: canvasView) { newCanvasView in
-            // Setup canvas save callback when canvas is ready
+        .onAppear {
+            // Setup canvas save callback
             logger.saveCanvasImage = { url in
-                return newCanvasView?.saveAsImage(to: url) ?? false
+                return canvasView?.saveAsImage(to: url) ?? false
             }
         }
     }
@@ -164,6 +168,23 @@ struct HarmonyTrackpadLabView: View {
         guard let sessionURL = logger.sessionFileURL else { return }
         let videoURL = sessionURL.deletingPathExtension().appendingPathExtension("mov")
         screenRecorder.startRecording(outputURL: videoURL)
+    }
+    
+    private func startCameraRecording() {
+        print("[VIEW] startCameraRecording() called")
+        guard let sessionURL = logger.sessionFileURL else {
+            print("[VIEW] No session URL - cannot start camera")
+            return
+        }
+        print("[VIEW] Session URL: \(sessionURL.path)")
+        // Create filename: session-YYYYMMDD-HHMMSS-camera.mov
+        let baseName = sessionURL.deletingPathExtension().lastPathComponent
+        let cameraFileName = "\(baseName)-camera.mov"
+        let cameraURL = sessionURL.deletingLastPathComponent().appendingPathComponent(cameraFileName)
+        print("[VIEW] Camera URL: \(cameraURL.path)")
+        print("[VIEW] Calling cameraRecorder.startRecording()...")
+        cameraRecorder.startRecording(outputURL: cameraURL)
+        print("[VIEW] startRecording() returned")
     }
 }
 

@@ -26,10 +26,16 @@ final class ScreenRecorder: NSObject, ObservableObject, SCStreamOutput {
     private var frameCount: Int64 = 0
     
     func startRecording(outputURL: URL) {
-        print("[ScreenRecorder] Starting screen recording to: \(outputURL.path)")
+        print("[ScreenRecorder] ========== START SCREEN RECORDING ==========")
+        print("[ScreenRecorder] Output URL: \(outputURL.path)")
         
         let directory = outputURL.deletingLastPathComponent()
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        do {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            print("[ScreenRecorder] ✓ Directory ready")
+        } catch {
+            print("[ScreenRecorder] Directory error: \(error)")
+        }
         
         Task {
             await startCapture(outputURL: outputURL)
@@ -37,13 +43,17 @@ final class ScreenRecorder: NSObject, ObservableObject, SCStreamOutput {
     }
     
     private func startCapture(outputURL: URL) async {
+        print("[ScreenRecorder] startCapture called")
         do {
+            print("[ScreenRecorder] Getting shareable content...")
             let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+            print("[ScreenRecorder] Found \(content.displays.count) displays")
             
             guard let display = content.displays.first else {
-                print("[ScreenRecorder] No display found")
+                print("[ScreenRecorder] ❌ No display found")
                 return
             }
+            print("[ScreenRecorder] ✓ Using display: \(display.width)x\(display.height)")
             
             let filter = SCContentFilter(display: display, excludingWindows: [])
             let config = SCStreamConfiguration()
@@ -54,7 +64,9 @@ final class ScreenRecorder: NSObject, ObservableObject, SCStreamOutput {
             config.showsCursor = true
             
             // Setup asset writer
+            print("[ScreenRecorder] Creating asset writer...")
             assetWriter = try AVAssetWriter(url: outputURL, fileType: .mov)
+            print("[ScreenRecorder] ✓ Asset writer created")
             
             let videoSettings: [String: Any] = [
                 AVVideoCodecKey: AVVideoCodecType.h264,
@@ -85,13 +97,19 @@ final class ScreenRecorder: NSObject, ObservableObject, SCStreamOutput {
             }
             
             // Start writing
+            print("[ScreenRecorder] Starting asset writer...")
             assetWriter?.startWriting()
             assetWriter?.startSession(atSourceTime: .zero)
+            print("[ScreenRecorder] ✓ Asset writer started")
             
             // Create and start stream
+            print("[ScreenRecorder] Creating SCStream...")
             let stream = SCStream(filter: filter, configuration: config, delegate: nil)
+            print("[ScreenRecorder] Adding stream output...")
             try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: DispatchQueue(label: "ScreenRecorder"))
+            print("[ScreenRecorder] Starting capture...")
             try await stream.startCapture()
+            print("[ScreenRecorder] ✓ Capture started")
             
             self.stream = stream
             self.recordingURL = outputURL
@@ -102,7 +120,9 @@ final class ScreenRecorder: NSObject, ObservableObject, SCStreamOutput {
                 print("[ScreenRecorder] ✓ Recording started")
             }
         } catch {
-            print("[ScreenRecorder] Failed to start: \(error)")
+            print("[ScreenRecorder] ❌ Failed to start: \(error)")
+            print("[ScreenRecorder] Error type: \(type(of: error))")
+            print("[ScreenRecorder] Error description: \(error.localizedDescription)")
             await MainActor.run {
                 errorMessage = "Failed: \(error.localizedDescription)"
             }

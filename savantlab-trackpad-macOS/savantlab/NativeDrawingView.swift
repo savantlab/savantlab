@@ -80,7 +80,7 @@ final class DrawingCanvasView: NSView {
         let brushPressure: CGFloat = 1.0
         
         // For each point in the stroke
-        for (count, currentPoint) in points.enumerated() {
+        for (_, currentPoint) in points.enumerated() {
             // Draw lines from current point to all previous points within distance
             for i in 0..<points.count {
                 let targetPoint = points[i]
