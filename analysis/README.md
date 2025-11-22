@@ -14,6 +14,28 @@ Comprehensive Python tools for analyzing trackpad session data collected from th
 
 ## Installation
 
+### Eye Tracking (Recommended - Automated Setup)
+
+For eye tracking analysis, use the automated setup script:
+
+```bash
+cd analysis
+./setup_eyetracking.sh
+```
+
+This script will:
+- Install `pyenv` if needed (via Homebrew)
+- Install Python 3.12 (required for MediaPipe)
+- Create a `venv-eyetracking` virtual environment
+- Install all dependencies: opencv-python, mediapipe, pandas, numpy, matplotlib, seaborn, jupyter
+
+After setup, activate the environment:
+```bash
+source venv-eyetracking/bin/activate
+```
+
+### Manual Installation (Alternative)
+
 1. **Create a virtual environment** (recommended):
 ```bash
 python3 -m venv venv
@@ -25,9 +47,7 @@ source venv/bin/activate  # On macOS/Linux
 pip install -r requirements.txt
 ```
 
-**Note for Eye Tracking**: MediaPipe (required for eye tracking) currently supports Python 3.9-3.12. If you have Python 3.14+, either:
-- Use `pyenv` to install Python 3.12: `pyenv install 3.12 && pyenv local 3.12`
-- Or skip eye tracking and use trackpad analysis only
+**Note**: MediaPipe (required for eye tracking) currently supports Python 3.9-3.12. If you have Python 3.14+, use the automated setup script above or install Python 3.12 manually with pyenv.
 
 ## Quick Start
 
