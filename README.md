@@ -8,8 +8,10 @@ This project provides a native macOS application that combines:
 - **Drawing canvas** with Harmony's shaded brush effect
 - **Trackpad event logging** capturing all movements, gestures, and timestamps
 - **Screen recording** automatically captures your entire desktop during sessions
+- **Camera recording** captures face video for eye tracking analysis
 - **Session recording** with automatic CSV + PNG + MOV export
 - **Real-time timer** for tracking drawing session duration
+- **Eye tracking analysis** extracts gaze, blinks, and fixations from camera videos
 
 ## Quick Start
 
@@ -38,7 +40,7 @@ This project provides a native macOS application that combines:
 
 ### Output Files
 
-Each recording session automatically saves three files to `~/Documents/savantlab-trackpad-sessions/`:
+Each recording session automatically saves four files to `~/Documents/savantlab-trackpad-sessions/`:
 
 - **`session-YYYYMMDD-HHMMSS.csv`** - Trackpad event log with:
   - Timestamp (ISO 8601 with fractional seconds)
@@ -52,7 +54,9 @@ Each recording session automatically saves three files to `~/Documents/savantlab
 
 - **`session-YYYYMMDD-HHMMSS.mov`** - Full desktop screen recording of your session
 
-> **Note:** Screen recording requires permission on first use. macOS will prompt you to allow screen recording in System Settings > Privacy & Security > Screen Recording.
+- **`session-YYYYMMDD-HHMMSS-camera.mov`** - Face/camera video for eye tracking analysis
+
+> **Note:** Screen and camera recording require permissions on first use. macOS will prompt you to allow access in System Settings > Privacy & Security.
 
 ![Drawing Example](docs/images/app_drawing_example.png)
 *Example saved drawing with Harmony shaded brush effect*
@@ -86,7 +90,40 @@ Captures comprehensive trackpad data:
 
 ## Data Analysis
 
-The analysis pipeline provides comprehensive insights into drawing behavior:
+The analysis pipeline provides comprehensive insights into drawing behavior and eye tracking data.
+
+### Eye Tracking Analysis
+
+Extract detailed eye metrics from camera recordings:
+
+```bash
+cd analysis
+./setup_eyetracking.sh  # One-time setup
+source venv-eyetracking/bin/activate
+
+python -c "
+from pathlib import Path
+import eye_tracking
+
+sessions_dir = Path.home() / 'Library/Containers/savant.savantlab/Data/Documents/savantlab-trackpad-sessions'
+camera_file = list(sessions_dir.glob('*-camera.mov'))[0]
+output_csv = camera_file.parent / camera_file.name.replace('-camera.mov', '-eye-tracking.csv')
+
+tracker = eye_tracking.EyeTracker()
+df = tracker.process_video(camera_file, output_csv)
+"
+```
+
+Extracts:
+- Gaze direction and position
+- Eye openness (left/right)
+- Pupil positions
+- Blink detection and rate
+- Fixations (stable gaze)
+- Saccades (rapid eye movements)
+- Eye movement velocity
+
+Output: `session-YYYYMMDD-HHMMSS-eye-tracking.csv` with frame-by-frame eye metrics.
 
 ### Example Visualizations
 
