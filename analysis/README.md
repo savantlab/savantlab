@@ -10,6 +10,7 @@ Comprehensive Python tools for analyzing trackpad session data collected from th
 - **Session Comparison**: Compare metrics across multiple sessions
 - **Interactive Exploration**: Jupyter notebook for hands-on analysis
 - **Export**: Save processed metrics and statistics in CSV/JSON formats
+- **Eye Tracking**: Extract gaze, blinks, fixations, saccades from camera recordings (requires Python 3.9-3.12)
 
 ## Installation
 
@@ -23,6 +24,10 @@ source venv/bin/activate  # On macOS/Linux
 ```bash
 pip install -r requirements.txt
 ```
+
+**Note for Eye Tracking**: MediaPipe (required for eye tracking) currently supports Python 3.9-3.12. If you have Python 3.14+, either:
+- Use `pyenv` to install Python 3.12: `pyenv install 3.12 && pyenv local 3.12`
+- Or skip eye tracking and use trackpad analysis only
 
 ## Quick Start
 
@@ -97,6 +102,29 @@ Create publication-quality plots.
 - `plot_session_comparison(sessions)` - Compare metric across sessions
 - `plot_speed_distribution(df)` - Histogram of speeds
 - `plot_direction_polar(df)` - Polar plot of movement directions
+
+### `eye_tracking.py`
+Extract eye tracking data from camera recordings using MediaPipe Face Mesh.
+
+**Key functions:**
+- `EyeTracker.process_video(video_path)` - Process camera MOV and extract metrics
+- `analyze_session(session_dir)` - Find and process camera file in session directory
+
+**Extracted metrics:**
+- Eye openness (left/right, 0-1 scale)
+- Pupil/iris positions (normalized coordinates)
+- Gaze direction (estimated screen coordinates)
+- Blink detection and rate
+- Fixations (stable gaze periods)
+- Saccades (rapid eye movements)
+- Eye movement velocity
+
+**Usage:**
+```bash
+python eye_tracking.py /path/to/session/directory
+```
+
+**Output:** Creates `session-YYYYMMDD-HHMMSS-eye-tracking.csv` with frame-by-frame eye metrics.
 
 ## Example Analyses
 
